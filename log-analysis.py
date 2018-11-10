@@ -6,13 +6,13 @@ DB_NAME = "news"
 query1Title = "What are the most popular three articles of all time?"
 query1 = ("SELECT title, count(*) AS views FROM articles "
           "JOIN log ON articles.slug = substring(log.path, 10) "
-          "GROUP BY title ORDER BY views DESC limit 3;")
+          "GROUP BY title ORDER BY views DESC LIMIT 3;")
 
 query2Title = "Who are the most popular article authors of all time?"
 query2 = ("SELECT authors.name, count(*) AS views FROM articles "
           "JOIN authors ON articles.author = authors.id "
           "JOIN log ON articles.slug = substring(log.path, 10) "
-          "WHERE log.status like '%200%' "
+          "WHERE log.status LIKE '%200%' "
           "GROUP BY authors.name ORDER BY views DESC;")
 
 query3Title = "On which days did more than 1% of requests lead to errors?"
@@ -23,9 +23,9 @@ query3 = ("SELECT day, perc FROM "
           "    * 100), 2) AS perc FROM "
           "        (SELECT substring(cast(log.time AS text), 0, 11) "
           "        AS day, count(*) AS requests FROM log "
-          "        WHERE status like '%404%' GROUP BY day) "
-          "    AS log_perc GROUP BY day ORDER BY perc DESC) "
-          "AS outer_query WHERE perc >= 1;")
+          "        WHERE status LIKE '%404%' GROUP BY day) "
+          "    AS req_by_day GROUP BY day ORDER BY perc DESC) "
+          "AS perc_by_day WHERE perc >= 1;")
 
 
 # Connect to database
@@ -48,11 +48,11 @@ def getQueryResults(query):
 
 
 # For queries 1 and 2
-def printQueryResults(queryResult):
-    for i in range(len(queryResult)):
-        title = queryResult[i][0]
-        views = queryResult[i][1]
-        print("\t" + str(i + 1) + " - %s - %d" % (title, views) + " views")
+def printQueryResults(result):
+    for i in range(len(result)):
+        title = result[i][0]
+        views = result[i][1]
+        print("\t" + str(i + 1) + title + " - " + str(views) + " views")
     print("\n")
 
 
