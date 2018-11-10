@@ -5,13 +5,13 @@ DB_NAME = "news"
 
 query1Title = "What are the most popular three articles of all time?"
 query1 = ("SELECT title, count(*) AS views FROM articles "
-          "JOIN log ON articles.slug = substring(log.path, 10) "
+          "JOIN log ON substring(log.path, 10) = articles.slug "
           "GROUP BY title ORDER BY views DESC LIMIT 3;")
 
 query2Title = "Who are the most popular article authors of all time?"
 query2 = ("SELECT authors.name, count(*) AS views FROM articles "
-          "JOIN authors ON articles.author = authors.id "
-          "JOIN log ON articles.slug = substring(log.path, 10) "
+          "JOIN authors ON authors.id = articles.author "
+          "JOIN log ON substring(log.path, 10) = articles.slug "
           "WHERE log.status LIKE '%200%' "
           "GROUP BY authors.name ORDER BY views DESC;")
 
@@ -19,9 +19,9 @@ query3Title = "On which days did more than 1% of requests lead to errors?"
 query3 = ("SELECT day, perc FROM "
           "    (SELECT day, round((sum(requests) / "
           "        (SELECT count(*) FROM log "
-          "        WHERE substring(cast(log.time AS text), 0, 11) = day) "
+          "        WHERE log.time::date = day) "
           "    * 100), 2) AS perc FROM "
-          "        (SELECT substring(cast(log.time AS text), 0, 11) "
+          "        (SELECT log.time::date "
           "        AS day, count(*) AS requests FROM log "
           "        WHERE status LIKE '%404%' GROUP BY day) "
           "    AS req_by_day GROUP BY day ORDER BY perc DESC) "
@@ -52,8 +52,7 @@ def printQueryResults(result):
     for i in range(len(result)):
         title = result[i][0]
         views = result[i][1]
-        print("\t" + str(i + 1) + title + " - " + str(views) + " views")
-    print("\n")
+        print("\t" + str(i + 1) + " - " + title + " - " + str(views) + " views")
 
 
 query1Results = getQueryResults(query1)
@@ -62,7 +61,9 @@ query3Results = getQueryResults(query3)
 
 print(query1Title)
 printQueryResults(query1Results)
+print("\n")
 print(query2Title)
 printQueryResults(query2Results)
+print("\n")
 print(query3Title)
 print("\t" + str(query3Results[0][0]) + " - " + str(query3Results[0][1]) + "%")
